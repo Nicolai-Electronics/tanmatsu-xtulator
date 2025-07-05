@@ -36,16 +36,16 @@ const uint8_t parity[0x100] = {
 	0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1
 };
 
-void cpu_writew(CPU_t* cpu, uint32_t addr32, uint16_t value) {
+FUNC_INLINE void cpu_writew(CPU_t* cpu, uint32_t addr32, uint16_t value) {
 	cpu_write(cpu, addr32, (uint8_t)value);
 	cpu_write(cpu, addr32 + 1, (uint8_t)(value >> 8));
 }
 
-uint16_t cpu_readw(CPU_t* cpu, uint32_t addr32) {
+FUNC_INLINE uint16_t cpu_readw(CPU_t* cpu, uint32_t addr32) {
 	return ((uint16_t)cpu_read(cpu, addr32) | (uint16_t)(cpu_read(cpu, addr32 + 1) << 8));
 }
 
-static inline void flag_szp8(CPU_t* cpu, uint8_t value) {
+FUNC_INLINE void flag_szp8(CPU_t* cpu, uint8_t value) {
 	if (!value) {
 		cpu->zf = 1;
 	}
@@ -63,7 +63,7 @@ static inline void flag_szp8(CPU_t* cpu, uint8_t value) {
 	cpu->pf = parity[value]; /* retrieve parity state from lookup table */
 }
 
-static inline void flag_szp16(CPU_t* cpu, uint16_t value) {
+FUNC_INLINE void flag_szp16(CPU_t* cpu, uint16_t value) {
 	if (!value) {
 		cpu->zf = 1;
 	}
@@ -81,19 +81,19 @@ static inline void flag_szp16(CPU_t* cpu, uint16_t value) {
 	cpu->pf = parity[value & 255];	/* retrieve parity state from lookup table */
 }
 
-static inline void flag_log8(CPU_t* cpu, uint8_t value) {
+FUNC_INLINE void flag_log8(CPU_t* cpu, uint8_t value) {
 	flag_szp8(cpu, value);
 	cpu->cf = 0;
 	cpu->of = 0; /* bitwise logic ops always clear carry and overflow */
 }
 
-static inline void flag_log16(CPU_t* cpu, uint16_t value) {
+FUNC_INLINE void flag_log16(CPU_t* cpu, uint16_t value) {
 	flag_szp16(cpu, value);
 	cpu->cf = 0;
 	cpu->of = 0; /* bitwise logic ops always clear carry and overflow */
 }
 
-static inline void flag_adc8(CPU_t* cpu, uint8_t v1, uint8_t v2, uint8_t v3) {
+FUNC_INLINE void flag_adc8(CPU_t* cpu, uint8_t v1, uint8_t v2, uint8_t v3) {
 
 	/* v1 = destination operand, v2 = source operand, v3 = carry flag */
 	uint16_t	dst;
@@ -122,7 +122,7 @@ static inline void flag_adc8(CPU_t* cpu, uint8_t v1, uint8_t v2, uint8_t v3) {
 	}
 }
 
-static inline void flag_adc16(CPU_t* cpu, uint16_t v1, uint16_t v2, uint16_t v3) {
+FUNC_INLINE void flag_adc16(CPU_t* cpu, uint16_t v1, uint16_t v2, uint16_t v3) {
 
 	uint32_t	dst;
 
@@ -150,7 +150,7 @@ static inline void flag_adc16(CPU_t* cpu, uint16_t v1, uint16_t v2, uint16_t v3)
 	}
 }
 
-static inline void flag_add8(CPU_t* cpu, uint8_t v1, uint8_t v2) {
+FUNC_INLINE void flag_add8(CPU_t* cpu, uint8_t v1, uint8_t v2) {
 	/* v1 = destination operand, v2 = source operand */
 	uint16_t	dst;
 
@@ -178,7 +178,7 @@ static inline void flag_add8(CPU_t* cpu, uint8_t v1, uint8_t v2) {
 	}
 }
 
-static inline void flag_add16(CPU_t* cpu, uint16_t v1, uint16_t v2) {
+FUNC_INLINE void flag_add16(CPU_t* cpu, uint16_t v1, uint16_t v2) {
 	/* v1 = destination operand, v2 = source operand */
 	uint32_t	dst;
 
@@ -206,7 +206,7 @@ static inline void flag_add16(CPU_t* cpu, uint16_t v1, uint16_t v2) {
 	}
 }
 
-static inline void flag_sbb8(CPU_t* cpu, uint8_t v1, uint8_t v2, uint8_t v3) {
+FUNC_INLINE void flag_sbb8(CPU_t* cpu, uint8_t v1, uint8_t v2, uint8_t v3) {
 
 	/* v1 = destination operand, v2 = source operand, v3 = carry flag */
 	uint16_t	dst;
@@ -236,7 +236,7 @@ static inline void flag_sbb8(CPU_t* cpu, uint8_t v1, uint8_t v2, uint8_t v3) {
 	}
 }
 
-static inline void flag_sbb16(CPU_t* cpu, uint16_t v1, uint16_t v2, uint16_t v3) {
+FUNC_INLINE void flag_sbb16(CPU_t* cpu, uint16_t v1, uint16_t v2, uint16_t v3) {
 
 	/* v1 = destination operand, v2 = source operand, v3 = carry flag */
 	uint32_t	dst;
@@ -266,7 +266,7 @@ static inline void flag_sbb16(CPU_t* cpu, uint16_t v1, uint16_t v2, uint16_t v3)
 	}
 }
 
-static inline void flag_sub8(CPU_t* cpu, uint8_t v1, uint8_t v2) {
+FUNC_INLINE void flag_sub8(CPU_t* cpu, uint8_t v1, uint8_t v2) {
 
 	/* v1 = destination operand, v2 = source operand */
 	uint16_t	dst;
@@ -295,7 +295,7 @@ static inline void flag_sub8(CPU_t* cpu, uint8_t v1, uint8_t v2) {
 	}
 }
 
-static inline void flag_sub16(CPU_t* cpu, uint16_t v1, uint16_t v2) {
+FUNC_INLINE void flag_sub16(CPU_t* cpu, uint16_t v1, uint16_t v2) {
 
 	/* v1 = destination operand, v2 = source operand */
 	uint32_t	dst;
@@ -324,77 +324,77 @@ static inline void flag_sub16(CPU_t* cpu, uint16_t v1, uint16_t v2) {
 	}
 }
 
-static inline void op_adc8(CPU_t* cpu) {
+FUNC_INLINE void op_adc8(CPU_t* cpu) {
 	cpu->res8 = cpu->oper1b + cpu->oper2b + cpu->cf;
 	flag_adc8(cpu, cpu->oper1b, cpu->oper2b, cpu->cf);
 }
 
-static inline void op_adc16(CPU_t* cpu) {
+FUNC_INLINE void op_adc16(CPU_t* cpu) {
 	cpu->res16 = cpu->oper1 + cpu->oper2 + cpu->cf;
 	flag_adc16(cpu, cpu->oper1, cpu->oper2, cpu->cf);
 }
 
-static inline void op_add8(CPU_t* cpu) {
+FUNC_INLINE void op_add8(CPU_t* cpu) {
 	cpu->res8 = cpu->oper1b + cpu->oper2b;
 	flag_add8(cpu, cpu->oper1b, cpu->oper2b);
 }
 
-static inline void op_add16(CPU_t* cpu) {
+FUNC_INLINE void op_add16(CPU_t* cpu) {
 	cpu->res16 = cpu->oper1 + cpu->oper2;
 	flag_add16(cpu, cpu->oper1, cpu->oper2);
 }
 
-static inline void op_and8(CPU_t* cpu) {
+FUNC_INLINE void op_and8(CPU_t* cpu) {
 	cpu->res8 = cpu->oper1b & cpu->oper2b;
 	flag_log8(cpu, cpu->res8);
 }
 
-static inline void op_and16(CPU_t* cpu) {
+FUNC_INLINE void op_and16(CPU_t* cpu) {
 	cpu->res16 = cpu->oper1 & cpu->oper2;
 	flag_log16(cpu, cpu->res16);
 }
 
-static inline void op_or8(CPU_t* cpu) {
+FUNC_INLINE void op_or8(CPU_t* cpu) {
 	cpu->res8 = cpu->oper1b | cpu->oper2b;
 	flag_log8(cpu, cpu->res8);
 }
 
-static inline void op_or16(CPU_t* cpu) {
+FUNC_INLINE void op_or16(CPU_t* cpu) {
 	cpu->res16 = cpu->oper1 | cpu->oper2;
 	flag_log16(cpu, cpu->res16);
 }
 
-static inline void op_xor8(CPU_t* cpu) {
+FUNC_INLINE void op_xor8(CPU_t* cpu) {
 	cpu->res8 = cpu->oper1b ^ cpu->oper2b;
 	flag_log8(cpu, cpu->res8);
 }
 
-static inline void op_xor16(CPU_t* cpu) {
+FUNC_INLINE void op_xor16(CPU_t* cpu) {
 	cpu->res16 = cpu->oper1 ^ cpu->oper2;
 	flag_log16(cpu, cpu->res16);
 }
 
-static inline void op_sub8(CPU_t* cpu) {
+FUNC_INLINE void op_sub8(CPU_t* cpu) {
 	cpu->res8 = cpu->oper1b - cpu->oper2b;
 	flag_sub8(cpu, cpu->oper1b, cpu->oper2b);
 }
 
-static inline void op_sub16(CPU_t* cpu) {
+FUNC_INLINE void op_sub16(CPU_t* cpu) {
 	cpu->res16 = cpu->oper1 - cpu->oper2;
 	flag_sub16(cpu, cpu->oper1, cpu->oper2);
 }
 
-static inline void op_sbb8(CPU_t* cpu) {
+FUNC_INLINE void op_sbb8(CPU_t* cpu) {
 	cpu->res8 = cpu->oper1b - (cpu->oper2b + cpu->cf);
 	flag_sbb8(cpu, cpu->oper1b, cpu->oper2b, cpu->cf);
 }
 
-static inline void op_sbb16(CPU_t* cpu) {
+FUNC_INLINE void op_sbb16(CPU_t* cpu) {
 	cpu->res16 = cpu->oper1 - (cpu->oper2 + cpu->cf);
 	flag_sbb16(cpu, cpu->oper1, cpu->oper2, cpu->cf);
 }
 
-static inline void getea(CPU_t* cpu, uint8_t rmval) {
+FUNC_INLINE void getea(CPU_t* cpu, uint8_t rmval) {
 	uint32_t	tempea;
 
 	tempea = 0;
@@ -462,12 +462,12 @@ static inline void getea(CPU_t* cpu, uint8_t rmval) {
 	cpu->ea = (tempea & 0xFFFF) + (cpu->useseg << 4);
 }
 
-static inline void push(CPU_t* cpu, uint16_t pushval) {
+FUNC_INLINE void push(CPU_t* cpu, uint16_t pushval) {
 	cpu->regs.wordregs[regsp] = cpu->regs.wordregs[regsp] - 2;
 	putmem16(cpu, cpu->segregs[regss], cpu->regs.wordregs[regsp], pushval);
 }
 
-static inline uint16_t pop(CPU_t* cpu) {
+FUNC_INLINE uint16_t pop(CPU_t* cpu) {
 
 	uint16_t	tempval;
 
@@ -487,7 +487,7 @@ void cpu_reset(CPU_t* cpu) {
 	cpu->trap_toggle = 0;
 }
 
-static inline uint16_t readrm16(CPU_t* cpu, uint8_t rmval) {
+FUNC_INLINE uint16_t readrm16(CPU_t* cpu, uint8_t rmval) {
 	if (cpu->mode < 3) {
 		getea(cpu, rmval);
 		return cpu_read(cpu, cpu->ea) | ((uint16_t)cpu_read(cpu, cpu->ea + 1) << 8);
@@ -497,7 +497,7 @@ static inline uint16_t readrm16(CPU_t* cpu, uint8_t rmval) {
 	}
 }
 
-static inline uint8_t readrm8(CPU_t* cpu, uint8_t rmval) {
+FUNC_INLINE uint8_t readrm8(CPU_t* cpu, uint8_t rmval) {
 	if (cpu->mode < 3) {
 		getea(cpu, rmval);
 		return cpu_read(cpu, cpu->ea);
@@ -507,7 +507,7 @@ static inline uint8_t readrm8(CPU_t* cpu, uint8_t rmval) {
 	}
 }
 
-static inline void writerm16(CPU_t* cpu, uint8_t rmval, uint16_t value) {
+FUNC_INLINE void writerm16(CPU_t* cpu, uint8_t rmval, uint16_t value) {
 	if (cpu->mode < 3) {
 		getea(cpu, rmval);
 		cpu_write(cpu, cpu->ea, value & 0xFF);
@@ -518,7 +518,7 @@ static inline void writerm16(CPU_t* cpu, uint8_t rmval, uint16_t value) {
 	}
 }
 
-static inline void writerm8(CPU_t* cpu, uint8_t rmval, uint8_t value) {
+FUNC_INLINE void writerm8(CPU_t* cpu, uint8_t rmval, uint8_t value) {
 	if (cpu->mode < 3) {
 		getea(cpu, rmval);
 		cpu_write(cpu, cpu->ea, value);
@@ -528,7 +528,7 @@ static inline void writerm8(CPU_t* cpu, uint8_t rmval, uint8_t value) {
 	}
 }
 
-uint8_t op_grp2_8(CPU_t* cpu, uint8_t cnt) {
+FUNC_INLINE uint8_t op_grp2_8(CPU_t* cpu, uint8_t cnt) {
 
 	uint16_t	s;
 	uint16_t	shift;
@@ -657,7 +657,7 @@ uint8_t op_grp2_8(CPU_t* cpu, uint8_t cnt) {
 	return s & 0xFF;
 }
 
-uint16_t op_grp2_16(CPU_t* cpu, uint8_t cnt) {
+FUNC_INLINE uint16_t op_grp2_16(CPU_t* cpu, uint8_t cnt) {
 
 	uint32_t	s;
 	uint32_t	shift;
@@ -784,7 +784,7 @@ uint16_t op_grp2_16(CPU_t* cpu, uint8_t cnt) {
 	return (uint16_t)s & 0xFFFF;
 }
 
-static inline void op_div8(CPU_t* cpu, uint16_t valdiv, uint8_t divisor) {
+FUNC_INLINE void op_div8(CPU_t* cpu, uint16_t valdiv, uint8_t divisor) {
 	if (divisor == 0) {
 		cpu_intcall(cpu, 0);
 		return;
@@ -799,7 +799,7 @@ static inline void op_div8(CPU_t* cpu, uint16_t valdiv, uint8_t divisor) {
 	cpu->regs.byteregs[regal] = valdiv / (uint16_t)divisor;
 }
 
-static inline void op_idiv8(CPU_t* cpu, uint16_t valdiv, uint8_t divisor) {
+FUNC_INLINE void op_idiv8(CPU_t* cpu, uint16_t valdiv, uint8_t divisor) {
 	//TODO: Rewrite IDIV code, I wrote this in 2011. It can be made far more efficient.
 	uint16_t	s1;
 	uint16_t	s2;
@@ -833,7 +833,7 @@ static inline void op_idiv8(CPU_t* cpu, uint16_t valdiv, uint8_t divisor) {
 	cpu->regs.byteregs[regal] = (uint8_t)d1;
 }
 
-static inline void op_grp3_8(CPU_t* cpu) {
+FUNC_INLINE void op_grp3_8(CPU_t* cpu) {
 	cpu->oper1 = signext(cpu->oper1b);
 	cpu->oper2 = signext(cpu->oper2b);
 	switch (cpu->reg) {
@@ -912,7 +912,7 @@ static inline void op_grp3_8(CPU_t* cpu) {
 	}
 }
 
-static inline void op_div16(CPU_t* cpu, uint32_t valdiv, uint16_t divisor) {
+FUNC_INLINE void op_div16(CPU_t* cpu, uint32_t valdiv, uint16_t divisor) {
 	if (divisor == 0) {
 		cpu_intcall(cpu, 0);
 		return;
@@ -927,7 +927,7 @@ static inline void op_div16(CPU_t* cpu, uint32_t valdiv, uint16_t divisor) {
 	cpu->regs.wordregs[regax] = valdiv / (uint32_t)divisor;
 }
 
-static inline void op_idiv16(CPU_t* cpu, uint32_t valdiv, uint16_t divisor) {
+FUNC_INLINE void op_idiv16(CPU_t* cpu, uint32_t valdiv, uint16_t divisor) {
 	//TODO: Rewrite IDIV code, I wrote this in 2011. It can be made far more efficient.
 	uint32_t	d1;
 	uint32_t	d2;
@@ -962,7 +962,7 @@ static inline void op_idiv16(CPU_t* cpu, uint32_t valdiv, uint16_t divisor) {
 	cpu->regs.wordregs[regdx] = d2;
 }
 
-static inline void op_grp3_16(CPU_t* cpu) {
+FUNC_INLINE void op_grp3_16(CPU_t* cpu) {
 	switch (cpu->reg) {
 	case 0:
 	case 1: /* TEST */
@@ -1040,7 +1040,7 @@ static inline void op_grp3_16(CPU_t* cpu) {
 	}
 }
 
-static inline void op_grp5(CPU_t* cpu) {
+FUNC_INLINE void op_grp5(CPU_t* cpu) {
 	switch (cpu->reg) {
 	case 0: /* INC Ev */
 		cpu->oper2 = 1;
@@ -1087,7 +1087,7 @@ static inline void op_grp5(CPU_t* cpu) {
 	}
 }
 
-void cpu_intcall(CPU_t* cpu, uint8_t intnum) {
+FUNC_INLINE void cpu_intcall(CPU_t* cpu, uint8_t intnum) {
 	if (cpu->int_callback[intnum] != NULL) {
 		(*cpu->int_callback[intnum])(cpu, intnum);
 		return;
